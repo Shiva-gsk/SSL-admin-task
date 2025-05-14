@@ -18,9 +18,8 @@ Following Commands are used to setup unattended upgrades making sure system alwa
 ```
 sudo apt update
 sudo apt install unattended-upgrades
-sudo dpkg-reconfigure --priority=low unattended-upgrades
 ```
-The first two commands just updates all packages and installs requires packages to setup 
+<!-- sudo dpkg-reconfigure --priority=low unattended-upgrades -->
 After installing packages we need to make some little changes to config files
 
 ```
@@ -76,4 +75,15 @@ In the context of SSH here we store our private key on our device and while usin
     ```
     This basically verifies the private key on our local pc using saved public key on VM and gives access to shell, kinda more secure than usual login credentials..
     
+### Disabling Root Login
+
+For this we need to go to SSH daemon config file which is located at ``/etc/ssh/sshd_config`` and change ``PermitRootLogin`` to ``no``.
+
+This basically prevents brute force password attacks on root as its basically well-known username.
+
+### Disable Password Authentication
+
+Similar to root login we need to change the ``PasswordAuthentication`` to ``no`` in the same SSH daemon config file.
+
+
 
