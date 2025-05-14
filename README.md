@@ -1,3 +1,11 @@
+# SSL Admin Task Documentation
+My documentation on SSL-admin Task basically has the following steps. you can use specific Links to get to the desired section.
+
+1. [Initial Setup](#stage-1---intial-setup)
+2. [Enhanced Security](#enhanced-security)
+<!-- 3. []() -->
+
+
 ### *Date: 14th May, 2025*
 ## Stage 1 - Intial Setup 
 This Stage required me to rent a Cloud VM on Azure or some similar platform.
@@ -9,9 +17,10 @@ Following Commands are used to setup unattended upgrades making sure system alwa
 
 ```
 sudo apt update
-sudo apt install unattended-upgrades update-notifier-common
+sudo apt install unattended-upgrades
 sudo dpkg-reconfigure --priority=low unattended-upgrades
 ```
+The first two commands just updates all packages and installs requires packages to setup 
 After installing packages we need to make some little changes to config files
 
 ```
@@ -19,7 +28,7 @@ sudo vim /etc/apt/apt.conf.d/50unattended-upgrades
 ```
 We need to make sure that `` "${distro_id}:${distro_codename}-security"`` is uncommented.
 
-Also we need to make sure daily updates are enabled. For this make sure that
+Also we need to make sure daily updates are enabled, so that updates are run automatically on a schedule. For this make sure that
 
 ```
 sudo nano /etc/apt/apt.conf.d/20auto-upgrades 
