@@ -13,6 +13,8 @@ I was actually new to using such platforms, so it took me some time to understan
 
 I basically signup to Azure Platform and I got about $100 free credits that can be used for over 365 days. I created a static IP resource and a VM using Static IP that I created. Though an easy setup, this took me some time as I was to new to such platform.
 
+Now after setting up VM our first task to enable unattended upgrades for security
+
 Following Commands are used to setup unattended upgrades making sure system always receives latest security upgrades.
 
 ```
@@ -54,9 +56,12 @@ I got to know concepts regarding this while setting up ssh key to my github, so 
 
 *Public-Private key is a mechanism where a unique signature made by Private key which can be verified by respective public key.*
 
-- Private key should be kept secret, and public key is used to verify the signature to verify access.
+- Private key should be kept secret, and public key is used to verify the signature to permit access.
 
-In the context of SSH here we store our private key on our device and while using SSH we run the following command to get access to remote pc's shell.
+In the context of SSH here we store our private key on our device and while using SSH to get access to remote pc's shell.
+
+
+### Enable Public-Private Key Auth
 
 1. First we need to create a public-private key pair. this is usually done on our local pc. We can use command ``ssh-keygen`` to create one for us.
 
@@ -75,7 +80,7 @@ In the context of SSH here we store our private key on our device and while usin
     ```
     This basically verifies the private key on our local pc using saved public key on VM and gives access to shell, kinda more secure than usual login credentials..
     
-### Disabling Root Login
+### Disable Root Login
 
 For this we need to go to SSH daemon config file which is located at ``/etc/ssh/sshd_config`` and change ``PermitRootLogin`` to ``no``.
 
@@ -84,6 +89,18 @@ This basically prevents brute force password attacks on root as its basically we
 ### Disable Password Authentication
 
 Similar to root login we need to change the ``PasswordAuthentication`` to ``no`` in the same SSH daemon config file.
+
+
+
+### *Date: 15th May, 2025*
+
+### Restricting SSH access to specific users 
+
+When i researched about this i came to knowthat there are actually different ways, but yeah using firewall is a better one of all.
+
+
+
+### Fail2ban
 
 
 
