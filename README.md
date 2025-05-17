@@ -4,6 +4,7 @@ My documentation on SSL-admin Task basically has the following steps. you can us
 1. [Initial Setup](#stage-1---intial-setup)
 2. [Enhanced Security](#enhanced-security)
 3. [Firewall and Network security](#firewall-and-network-security)
+4. [User and Permission Management](#user-and-permission-management)
 <!-- 3. []() -->
 
 
@@ -92,7 +93,18 @@ This basically prevents brute force password attacks on root as its basically we
 
 Similar to root login we need to change the ``PasswordAuthentication`` to ``no`` in the same SSH daemon config file.
 
+But I found an issue with it as i was still able to access SSH through password. After searching through config files found that a file in ``/etc/ssh/sshd_config.d/50-cloud-init.conf`` has ``PasswordAuthentication`` set to ``yes`` and the file is included in sshd_config file, which makes me still access SSH using password. 
 
+To completely disable password access to SSH we need to change ``PasswordAuthentication`` in that file to ``no``.
+
+```
+sudo vim /etc/ssh/sshd_config.d/50-cloud-init.conf
+```
+
+and change 
+```
+PasswordAuthentication no
+```
 
 ### *Date: 15th May, 2025*
 
@@ -183,7 +195,7 @@ sudo usermod -aG sudo examadmin   //adds sudo grp to examadmin
 
 You can check groups by using ``groups username``
 
-FOr examaudit which needs read access to all users home dir we use
+For examaudit which needs read access to all users home dir we use
 
 ```
 sudo useradd -m examaudit
@@ -213,9 +225,9 @@ If we want examadmin to cd into all user directories without root shell, we can 
 ```
 sudo usermod -aG exam_1,exam_2,exam_3 examadmin
 ```
-
+### *Date: May 17th, 2025*
 ### Home Directory Setup
 
 To check permissions, we can use ls -lart /home and check all the permissions, because we already setup these in above steps.
 
-
+Next to setup Disk Spaces to users 
