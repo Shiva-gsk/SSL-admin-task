@@ -159,7 +159,29 @@ After that we need to restart fail2ban service.
 ## Firewall and Network Security
 
 ### Firewall Configuration
-Uncomplicated Firwall formely ufw is a basically a utility that is designed to simplify the setup and management of firewall rules.
+Iptables are used for managing packet flow, Network Address Translation, Port Forwarding, etc.
+
+Uncomplicated Firwall formely ufw is a basically a utility that is designed to simplify the setup and management of firewall rules and work with iptables.
+
+Generally its installed on machine but if it's not we can install it using 
+```
+sudo apt install ufw
+```
+
+We can view list of iptables rules using command
+```
+iptables -L -v
+```
+They are basically divided into chains of rules (INPUT, OUTPUT, FORWARD).
+
+We can use ufw to do iptables management for us to control network traffic.
+
+Intially we can setup rule to allow all outgoing and deny all incomming traffic using
+
+```
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+```
 
 
 ## User and Permission Management
@@ -231,3 +253,4 @@ sudo usermod -aG exam_1,exam_2,exam_3 examadmin
 To check permissions, we can use ls -lart /home and check all the permissions, because we already setup these in above steps.
 
 Next to setup Disk Spaces to users 
+
