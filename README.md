@@ -179,9 +179,33 @@ We can use ufw to do iptables management for us to control network traffic.
 Intially we can setup rule to allow all outgoing and deny all incomming traffic using
 
 ```
+sudo ufw enable
 sudo ufw default deny incoming
 sudo ufw default allow outgoing
 ```
+
+And let's get to allowing SSH on non-deafult port (eg. 2222)
+
+For this we first need to allow connections to that port trough ufw, so we can just do
+```
+sudo ufw allow 2222/tcp
+sudo ufw reload
+```
+
+Now we need to change ``Port`` in SSH daemon config to ``2222`` and restart SSH service.
+
+Also we need to add This port on Azure Portal to allow connection. We can just create a new Inbound Port rule in Networking Section of our VM.
+
+Now we can connect to SSH on port 2222.
+
+We can also http and https on their default ports 80 and 443
+
+```
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+```
+
+To enable Logging we can use ``sudo ufw logging on`` and logs will automatically be saved to ``/var/log/ufw.log``
 
 
 ## User and Permission Management
