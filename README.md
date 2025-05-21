@@ -5,6 +5,7 @@ My documentation on SSL-admin Task basically has the following steps. you can us
 2. [Enhanced Security](#enhanced-security)
 3. [Firewall and Network security](#firewall-and-network-security)
 4. [User and Permission Management](#user-and-permission-management)
+5. [Web Server Deployment and Secure Configuration](#web-server-deployment-and-secure-configuration)
 <!-- 3. []() -->
 
 
@@ -247,7 +248,7 @@ For examaudit which needs read access to all users home dir we use
 sudo useradd -m examaudit
 sudo usermod -aG exam_1,exam_2,exam_3 examaudit
 ```
-As we added examaudit to all user groups now we can change permissions of grps tohave read access. For that we run the following command.
+As we added examaudit to all user groups, we can change permissions of grps to have read access. For that we run the following command.
 
 ```
 sudo chmod 740 /home/exam_1
@@ -277,4 +278,173 @@ sudo usermod -aG exam_1,exam_2,exam_3 examadmin
 To check permissions, we can use ls -lart /home and check all the permissions, because we already setup these in above steps.
 
 Next to setup Disk Spaces to users 
+
+For this we need to change ``/etc/fstab`` file and add ``usrquota`` beside defaults
+
+Then we need to remount ``sudo mount -o remount /`` root dir and perform ``sudo quotacheck -cum /``.
+
+We can start using quotas by ``sudo quotaon /`` but it is not supported in azure shell idk why but yhh for this to work there are some ways which i explored 
+
+One way is to detach OS disk and attach it to a VM and do it as we need to umount , we can't do it when it is working as OS so we do it.
+
+Other way is to use one external disk and setup quotas in it and use it to mount that in /home directory.
+
+I might work on this later.
+
+### Backup Script
+
+Basically we can create bash file at /usr/local/bin/backup_exam_users.sh and use script below
+
+```
+#!/bin/bash
+
+BACKUP_DIR="/var/backups/exam_users"
+mkdir -p "$BACKUP_DIR"
+
+TIMESTAMP=$(date +"%Y-%m-%d")
+BACKUP_FILE="$BACKUP_DIR/exam_users_backup_$TIMESTAMP.tar.gz"
+
+tar -czf "$BACKUP_FILE" /home/exam_*
+
+chmod 600 "$BACKUP_FILE"
+```
+
+To restrict execution only to admin we can make admin as its owner and give permissions for only owner.
+```
+sudo chown examadmin:examadmin /usr/local/bin/backup_exam_users.sh
+sudo chmod 700 /usr/local/bin/backup_exam_users.sh
+```
+
+If we want we can also make cron job for that so that it happens on certain intervals
+
+```
+sudo crontab -u examadmin -e
+```
+
+we can add this in the tab
+
+```
+@daily /usr/local/bin/backup_exam_users.sh
+```
+
+##  Web Server Deployment and Secure Configuration 
+
+We can simply Install nginx using apt and we can set flag -y to automatically accept yes to all prompts
+```
+sudo apt install nginx -y
+```
+We can create a user with bash access using following command
+
+```
+sudo useradd -m -s /bin/bash appuser
+```
+
+We can passwd to the user , I used username as passwd for convinence.
+
+We can switch to newly created user using the command ``su - appuser``
+
+Now Initially I thought that I might get app from app and SHA256 signature using wget but it didn't worked well. So I used FileZilla to transfer the download app on windows to my VM. 
+
+To check signature we need to edit signature. So I switched to sudo user and edited the signature to include name of app at last like
+
+```
+52ef28f5606aa8ad4aee09e723ee9b08f62fdca0aa86c1c01c1bb4d61a46e47c app1
+```
+We need to do so that checksum knows which file to check hash with.
+
+These kind of signatures are used to verify that the file is not tampered.
+
+We can use check sum to verify signature.
+
+```
+sha256sum -c app1.sha256.sig
+```
+
+If it's says ok then everything is fine.
+
+Now We need to give execute permission by switching to sudo user 
+
+```
+sudo chmod +x ./app1
+```
+
+We can un it now just by executing it 
+```
+./app1
+```
+
+For app2 we can simply clone with HTTPS url 
+```
+git clone <url>
+```
+
+We can see its using bun by looking at bun.lockb
+
+So to run that either we can use Docker or bun
+
+For now i will go wit bun for that we need to run 
+```
+sudo apt install unzip -y
+curl -fsSL https://bun.sh/install | bash
+```
+Restart shell and use ``bun --version`` to check installation.
+
+Note:
+Now for setting up a Reverse Proxy, since we are not assigned domains, I'm going to use the Public IP for that.
+
+Comming to **Reverse Proxy**, it is basically configured infront of backend to to do tasks like load balancing, directing requests to specific server, etc.
+
+It also helps us to hide the original IP of the backend serving as  security measure.
+
+Also one advantage of reverse proxy is we don't need to remember port numbers of backend to interact with. We just send http or https request to ngnix and ngnix will handle.
+
+Now as we installed our apps and ngnix, Let's setup Reverse Proxy!!!.
+
+For this we need to define some rules for ngin. We can do that in ``/etc/nginx/sites-available/`` dir. This is the place where all nginx config files are placed.
+we need to create a file in that dir and add our proxy rules. 
+```
+sudo nano /etc/nginx/sites-available/reverse-http
+```
+
+Now we can add our rules, We basically have three end points 
+
+```
+server {
+    listen 80;
+    server_name 9.234.160.46;
+
+    location /server1/ {
+        proxy_pass http://127.0.0.1:8008/server1;
+    }
+
+    location /server2/ {
+        proxy_pass http://127.0.0.1:8008/;
+      
+    }
+
+    location /sslopen/ {
+        proxy_pass http://127.0.0.1:3000/sslopen/edit/token1;
+    }
+}
+```
+
+Our reverse-http file looks like this.
+
+Let's go through those lines step y step
+
+First we are defining that our nginx server to listen on port 80 i.e, http. We used our server name as public IP as we still not go any domain assigned. Then we specify our endpoints basically.
+
+First one is on endpoint /server1, we are forwrding the request to localhost (which is 127.0.0.1) on port 8008, where our app1 is running.
+
+Similarly we done for /server2.
+
+Now for /sslopen after reading README I can we know that we can add env variable token assigned to some admin and send it as Dynamic parameter to acces Post form.
+
+So I just added to example Variables in .env.example to .env and included token in request URL.
+
+Now all our endpoints are working successfuly but as we are in Azure VM we need to set Inbound Port to Port 80 to access it from outside (Internet basically). I quickly did it on Azure Portal.
+
+We can use cURL to check the Reverse proxy status.
+
+As we don't have Inbound ports to Port 8008 and 3000 we can't access them from internet.
 
