@@ -329,6 +329,8 @@ we can add this in the tab
 
 ##  Web Server Deployment and Secure Configuration 
 
+### 1. Reverse Proxy Configuration
+
 We can simply Install nginx using apt and we can set flag -y to automatically accept yes to all prompts
 ```
 sudo apt install nginx -y
@@ -430,7 +432,21 @@ server {
 
 Our reverse-http file looks like this.
 
-Let's go through those lines step y step
+We can use symlink to add our file to ``/etc/nginx/sites-enabled/``
+```
+sudo ln -s /etc/nginx/sites-available/reverse-http /etc/nginx/sites-enabled/
+```
+
+Then we can test the file using using
+```
+sudo nginx -t
+```
+As test are passed we can reload nginx to apply changes.
+```
+sudo systemctl reload nginx
+```
+
+Ok Now, Let's go through those lines step by step
 
 First we are defining that our nginx server to listen on port 80 i.e, http. We used our server name as public IP as we still not go any domain assigned. Then we specify our endpoints basically.
 
@@ -438,7 +454,7 @@ First one is on endpoint /server1, we are forwrding the request to localhost (wh
 
 Similarly we done for /server2.
 
-Now for /sslopen after reading README I can we know that we can add env variable token assigned to some admin and send it as Dynamic parameter to acces Post form.
+Now for /sslopen after reading README I can we know that we can add env variable token assigned to some admin and send it as Dynamic parameter to access Post form.
 
 So I just added to example Variables in .env.example to .env and included token in request URL.
 
@@ -448,3 +464,226 @@ We can use cURL to check the Reverse proxy status.
 
 As we don't have Inbound ports to Port 8008 and 3000 we can't access them from internet.
 
+### Content Security Policy
+
+CSP is a browser-side security feature that helps prevent Cross-site-scripting (XSS) and other code injection attacks by telling the browser which sources of content are allowed to load.
+
+After browsing through internet i got a full secure Content-policy which is below
+```
+Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';" always;
+```
+Now Let's try to understand these one by one.
+
+1. default-src 'self'  : Default fallback policy allowing scripts, images,.. from same domain only!
+2. script-src 'self'   : Allows Js files from only same domain.
+3. style-src 'self'    : Allows CSS only from same domain (Blocks inline and 3rd party CSS)
+4. img-src 'self' data : Allows images only from  same domain
+5. object-src 'none'    : Disallows usage of `<object>` and `<embed>` like tags.
+6. frame-ancestors 'none' : Prevents websites to be embedded in iframes.
+7. base-uri 'self'  : 	Limits the `<base>` HTML tag to only allow self-origin URLs.
+8. form-action 'self' : Restricts where forms on our site can submit data to, allowing only our servers to receive form data.
+9. always  : thisis nginx specific to add make sure headers are always added.
+
+We can add it in our `reverse-http` file we created above . We can place below code under server name
+```
+add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';" always;
+```
+and then we need to test and reload nginx again to make changes applied.
+
+```
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+Now our Websites also have CSP enabled!!
+
+
+## Database Security
+
+### 1. Database Setup
+
+Mariadb is an Open source RDMS which serves as alternative to MySQL with betterperformance and better community support.
+
+We can install it by 
+```
+sudo apt install mariadb-server -y  
+```
+Again -y flag to say yes to installation prompt.
+
+We can start mariadb service using systemctl
+
+```
+sudo systemctl start mariadb
+```
+
+Then we can run ``sudo mysql_secure_installation`` to set up basic db security, We can disable root login from this.
+
+We can login to mariadb using 
+```
+sudo mysql -u root -p
+```
+
+To crate database we an use 
+```
+CREATE DATABASE secure_onboarding;
+```
+
+Then created a onboarding_user with same password as username.
+
+```
+CREATE USER 'onboarding_user'@'localhost' IDENTIFIED BY 'StrongPassword123!';
+```
+
+WE can give the onboarding_user minimal permissions like SELECT, INSERT, UPDATE and DELETE and apply Privilages.
+```
+GRANT SELECT, INSERT, UPDATE, DELETE ON secure_onboarding.* TO 'onboarding_user'@'localhost';
+FLUSH PRIVILEGES;
+```
+### 2. Database Security
+
+To Ensure remote root login is disabled we can just UPDATE the host of root to ``localhost`` and then EXIT ``mariadb repl``.
+
+```
+UPDATE mysql.user SET Host='localhost' WHERE User='root';
+FLUSH PRIVILEGES;
+EXIT;
+```
+Now to ensure that our server is only accesable through localhost we can bind it it our localhost IP which is 127.0.0.1.
+
+We can do it by ensuring the binding address in its config file. We can go to this file
+```
+sudo nano /etc/mysql/mariadb.conf.d/50-server.cnf
+```
+and change 
+```
+bind-address = 127.0.0.1
+```
+Then we need to restart our mariadb service to apply changes.
+
+For backup we can just create a script at
+```
+sudo nano /usr/local/bin/db_backup.sh
+```
+
+and use following script to do it.
+
+```
+#!/bin/bash
+DB_NAME="secure_onboarding"
+DB_USER="root"
+DB_PASS="Shivak"
+BACKUP_DIR="/var/backups/mariadb"
+DATE=$(date +%F_%T)
+
+mkdir -p $BACKUP_DIR
+mysqldump -u$DB_USER -p$DB_PASS $DB_NAME > $BACKUP_DIR/${DB_NAME}_$DATE.sql
+find $BACKUP_DIR -type f -mtime +7 -delete
+```
+
+Let's go through script, Intially we declared all required variables like DB_NAME, etc.
+
+and we are creating BackUp dir using -p flag to ensure it only happens if it doesn't exist. 
+
+Also we are using mysqldump to store ur data backup and also delete older backups specifically 7 days (Yhh as stroge will be issue if we keep older files).
+
+
+## VPN Configuration 
+
+
+## Docker Fundamentals and Personal Website Deployment 
+
+### 1. Basic Docker Setup
+
+For this we need to install few prerequisite packages which let apt to use packages over HTTPS.
+```
+sudo apt install apt-transport-https ca-certificates curl software-properties-common -y
+```
+Now we need to add Official Docker GPG key (Similar to public key) on our machine, so that while installing any packages we can make sure that they are originally from Docker Inc.
+
+We can just run this command to download Dockey key and store it.
+```
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+```
+They key will be saved to `/usr/share/keyrings`
+
+Now we need to add Docker Repo to APT sources for that we use
+```
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+```
+
+Now we can install our docker Engine
+```
+sudo apt update
+sudo apt install docker-ce docker-ce-cli containerd.io -y
+```
+
+We can rnable docker using systemctl so that it starts on boot
+```
+sudo systemctl enable docker
+```
+
+Now we can add our user to docker using
+```
+sudo usermod -aG docker $USER
+```
+Now we can logout and login or just use ``newgrp docker`` to get permission to run docker containers.
+
+Lets try runnign `hello-world` image
+```
+docker run hello-world
+```
+
+### 2. Deploying a Portfolio Website via Docker and Nginx
+
+For this I used FileZilla again to transfer my portfolio to VM and then created Dockerfile and .dockerignore files. The portfoilio is basically In NextJs.
+
+Now we can create image 
+```
+docker build -t portfolio .
+```
+
+We can create a volume using
+```
+docker volume create nextjs_data
+```
+and run the container with
+```
+docker run -d --name my-porfolio   -p 5555:3000   -v nextjs_data:/app/data   --cap-add=NET_ADMIN    portfolio
+```
+Due to issues with NextJs and Reverse Proxy Javascript is not being loading (Hydration) and my website is not Interactive. I might lokk into this later.
+
+And now to run this on bootup we need to create a service. We can just create a file with portfolio.serve name.
+
+```
+sudo nano /etc/systemd/system/portfolio.service
+```
+Now we can add our Configuration to it
+
+```
+[Unit]
+Description=Portfolio Docker Container
+After=docker.service
+Requires=docker.service
+
+[Service]
+Restart=always
+ExecStart=/usr/bin/docker start -a my-portfolio
+ExecStop=/usr/bin/docker stop -t 2 my-portfolio
+
+[Install]
+WantedBy=multi-user.target
+```
+
+This Just says to start container when system boots up.
+
+Now we can use following commands to reecute and reload files into systemd
+```
+sudo systemctl daemon-reexec
+sudo systemctl daemon-reload
+```
+
+Now we can start our porfolio service
+```
+sudo systemctl enable portfolio.service
+sudo systemctl start portfolio.service
+```
