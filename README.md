@@ -6,7 +6,9 @@ My documentation on SSL-admin Task basically has the following steps. you can us
 3. [Firewall and Network security](#firewall-and-network-security)
 4. [User and Permission Management](#user-and-permission-management)
 5. [Web Server Deployment and Secure Configuration](#web-server-deployment-and-secure-configuration)
-<!-- 3. []() -->
+6. [Database Security](#database-security)
+7. [VPN Configuration](#vpn-configuration)
+8. [Docker Fundamentals and Personal Website Development](#docker-fundamentals-and-personal-website-deployment)
 
 
 ### *Date: 14th May, 2025*
@@ -588,6 +590,12 @@ Also we are using mysqldump to store ur data backup and also delete older backup
 
 
 ## VPN Configuration 
+WireGuard is a modern fast and secure VPN protocol. We can use it to create a virtual Local Network and yhh we can use NAT to send requests through VPN server Public IP. For this I am using my VM as 
+
+```
+sudo apt install wireguard
+```
+
 
 
 ## Docker Fundamentals and Personal Website Deployment 
@@ -687,3 +695,100 @@ Now we can start our porfolio service
 sudo systemctl enable portfolio.service
 sudo systemctl start portfolio.service
 ```
+
+Now i setup my reverse proxy for this website on location /portfolio
+
+```
+location /_next/static/ {
+    proxy_pass http://localhost:5555/_next/static/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+}
+
+location /portfolio {
+    proxy_pass http://localhost:5555/;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host $host;
+    proxy_cache_bypass $http_upgrade;
+}
+```
+First one to direct the resource fetching and second location for my actual website.
+
+Now I get to know that as Iam using reverse proxy my nextjsapp is getting confused on where to fetch resources(Its searching on /portfolio/_next/.. but needs to search on ./_next/..). 
+
+After surfing though internet, i got to know that we just need to configure next.config.ts file and specify our proxy route as basePath and assetPath.
+
+```
+const nextConfig: NextConfig = {
+  basePath: "/portfolio",
+  assetPrefix: '/portfolio/',
+};
+```
+Now our rotes are correctly configured, CSP is not allowing hydration (might be due to script 'self' tag in CSP header).
+
+So, I specifically wrote a header on portfolio section.
+
+```
+    location /_next/static/ {
+        proxy_pass http://localhost:5555/_next/static/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    location /portfolio/ {
+          add_header Content-Security-Policy "
+          default-src 'self';
+          script-src 'self' 'unsafe-inline' 'unsafe-eval';
+          style-src 'self' 'unsafe-inline';
+          img-src 'self' data:;
+          font-src 'self' data:;
+          connect-src 'self' https:;
+          frame-ancestors 'none';
+          object-src 'none';
+          base-uri 'self';
+          form-action 'self';
+        " always;
+        proxy_pass http://localhost:5555/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+```
+Thankfully, there are plenty of nice resources on Internet over there to guide me through my setup Process.
+
+Actually I don't need the first proxy location on /_next/static as /portfolio route automatically manges and sends request if the next.config.ts is correctly configured for proxy. So we can remove it.
+
+```
+location /portfolio/ {
+    add_header Content-Security-Policy "
+    default-src 'self';
+    script-src 'self' 'unsafe-inline' 'unsafe-eval';
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' data:;
+    font-src 'self' data:;
+    connect-src 'self' https:;
+    frame-ancestors 'none';
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+    manifest-src 'self';
+    media-src 'self';
+    " always;
+
+    proxy_pass http://localhost:5555/;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host $host;
+    proxy_cache_bypass $http_upgrade;
+}
+```
+
+This is the only thing i need extra in my ``/etc/nginx/sites-available/reverse-http`` file.
+
+Finally, Our reverse proxy is functional . YAY!!
+
