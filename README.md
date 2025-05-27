@@ -386,14 +386,14 @@ We can see its using bun by looking at bun.lockb
 
 So to run that either we can use Docker or bun
 
-For now i will go wit bun for that we need to run 
+For now i will go with bun for that we need to run 
 ```
 sudo apt install unzip -y
 curl -fsSL https://bun.sh/install | bash
 ```
 Restart shell and use ``bun --version`` to check installation.
 
-Note:
+**Note:**
 Now for setting up a Reverse Proxy, since we are not assigned domains, I'm going to use the Public IP for that.
 
 Comming to **Reverse Proxy**, it is basically configured infront of backend to to do tasks like load balancing, directing requests to specific server, etc.
@@ -796,4 +796,6 @@ location /portfolio/ {
 This is the only thing i need extra in my ``/etc/nginx/sites-available/reverse-http`` file.
 
 Finally, Our reverse proxy is functional . YAY!!
+
+You can access my porfolio now on http://9.234.160.46/portfolio
 
