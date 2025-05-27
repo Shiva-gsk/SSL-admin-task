@@ -596,6 +596,11 @@ WireGuard is a modern fast and secure VPN protocol. We can use it to create a vi
 sudo apt install wireguard
 ```
 
+So now we need to setup server configuration in our VM and a Client configuration in our PC. 
+
+Actually for this we need to generate 2 pair of public private key, one in server and one in client.
+
+We can do this by using wg command given by wireguard command li e utility.
 
 
 ## Docker Fundamentals and Personal Website Deployment 
