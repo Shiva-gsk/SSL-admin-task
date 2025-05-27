@@ -466,6 +466,49 @@ We can use cURL to check the Reverse proxy status.
 
 As we don't have Inbound ports to Port 8008 and 3000 we can't access them from internet.
 
+We can create System deamon Service for these two apps so that they start to run on Boot up.
+
+After searching abont daemon services I came to know we can set it up simply in ``/etc/systemd/system/`` dir by creating a .service file.
+
+My service file for app1 look like this
+
+```
+[Unit]
+Description=App1 Service
+After=network.target
+
+[Service]
+User=appuser
+ExecStart=/home/appuser/app1
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+We Just can make sure the Working dir and Start command to start the app.
+
+Now for issslopen it tooks similar we just need to change working dir and start command.
+
+```
+[Unit]
+Description=IsSSLOpen Service
+After=network.target
+
+[Service]
+User=appuser
+WorkingDirectory=/home/appuser/issslopen
+ExecStart=/home/appuser/.bun/bin/bun index.ts
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+As we know we are using bun to run the app.
+
+Now these apps and Reverse Proxy is fully functional.
+
+
 ### Content Security Policy
 
 CSP is a browser-side security feature that helps prevent Cross-site-scripting (XSS) and other code injection attacks by telling the browser which sources of content are allowed to load.
@@ -600,7 +643,43 @@ So now we need to setup server configuration in our VM and a Client configuratio
 
 Actually for this we need to generate 2 pair of public private key, one in server and one in client.
 
-We can do this by using wg command given by wireguard command li e utility.
+We can create one using wireguard command line utility.
+
+```
+wg genkey | tee privatekey | wg pubkey > publickey
+```
+
+The genkey command generates a Private key and we write it into a file named privatekey and pipe the input to pubkey command which generates corresponding Public key and write it to a file named public key.
+
+Then we need to create a conf file for a Virtual Network Interface and and configure it.
+
+```
+[Interface]
+Address = 10.0.0.1/24
+PrivateKey = <server_private_key>
+ListenPort = 51820
+
+```
+
+We are setting our Vnet on IP 10.0.0.1 with subnet of 24 bits. And adding our Private key and Assigning a port to listen on 51820 which is default for UDP Port for WireGuard.
+
+Now Similary, We need to Create a Client Interface and add Server Public Key to Client and Client Public key to Sever For them to exchange Packets.
+
+As Im using Windows as my client() I'm using Wireguard Application for Windows. And Create a Tunnel Interface.
+
+```
+[Interface]
+PrivateKey = xxxxxxxxx
+Address = 10.0.0.2/8
+
+[Peer]
+PublicKey = xxxxxxxxxxxxxxx
+AllowedIPs = 0.0.0.0/0
+Endpoint = 9.234.160.46:51820
+PersistentKeepalive = 25
+```
+
+Now, we Need to add client public key to server conf so that it verifies and accepts requests from client.
 
 
 ## Docker Fundamentals and Personal Website Deployment 
