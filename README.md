@@ -1,5 +1,5 @@
 # SSL Admin Task Documentation
-My documentation on SSL-admin Task basically has the following steps. you can use specific Links to get to the desired section.
+My documentation on SSL-admin Task basically has the following steps. You can use specific Links to get to the desired section.
 
 1. [Initial Setup](#stage-1---intial-setup)
 2. [Enhanced Security](#enhanced-security)
@@ -18,7 +18,7 @@ I was actually new to using such platforms, so it took me some time to understan
 
 I basically signup to Azure Platform and I got about $100 free credits that can be used for over 365 days. I created a static IP resource and a VM using Static IP that I created. Though an easy setup, this took me some time as I was to new to such platform.
 
-Now after setting up VM our first task to enable unattended upgrades for security
+Now after setting up VM our first task to enable unattended upgrades for security.
 
 Following Commands are used to setup unattended upgrades making sure system always receives latest security upgrades.
 
@@ -39,17 +39,14 @@ Also we need to make sure daily updates are enabled, so that updates are run aut
 ```
 sudo nano /etc/apt/apt.conf.d/20auto-upgrades 
 ```
-
 this file has below fields.
 ```
 APT::Periodic::Update-Package-Lists "1";
 APT::Periodic::Unattended-Upgrade "1";
 ```
-
 And there we go..
 
 The intial setup is finally done 😮‍💨
-
 
 ## Enhanced Security
 
@@ -113,7 +110,7 @@ PasswordAuthentication no
 
 ### Restricting SSH access to specific users 
 
-When i researched about this i came to know that there are actually different ways, but yeah using firewall is a better one of all.
+When i researched about this I came to know that there are actually different ways, but yeah using firewall is a better one of all.
 
 IP are like two types Public and Private. We can eiter allow a public IP are a range of local IP using subnet.
 
@@ -768,7 +765,7 @@ WantedBy=multi-user.target
 
 This Just says to start container when system boots up.
 
-Now we can use following commands to reecute and reload files into systemd
+Now we can use following commands to re-execute and reload files into systemd
 ```
 sudo systemctl daemon-reexec
 sudo systemctl daemon-reload
@@ -800,7 +797,7 @@ location /portfolio {
 ```
 First one to direct the resource fetching and second location for my actual website.
 
-Now I get to know that as Iam using reverse proxy my nextjsapp is getting confused on where to fetch resources(Its searching on /portfolio/_next/.. but needs to search on ./_next/..). 
+Now I get to know that as Iam using reverse proxy, my nextjsapp is getting confused on where to fetch resources(Its searching on ./portfolio/_next/.. but needs to search on ./_next/..). 
 
 After surfing though internet, i got to know that we just need to configure next.config.ts file and specify our proxy route as basePath and assetPath.
 
@@ -810,7 +807,7 @@ const nextConfig: NextConfig = {
   assetPrefix: '/portfolio/',
 };
 ```
-Now our rotes are correctly configured, CSP is not allowing hydration (might be due to script 'self' tag in CSP header).
+Now our routes are correctly configured, but still CSP is not allowing hydration (might be due to script 'self' tag in CSP header).
 
 So, I specifically wrote a header on portfolio section.
 
@@ -844,7 +841,7 @@ So, I specifically wrote a header on portfolio section.
 ```
 Thankfully, there are plenty of nice resources on Internet over there to guide me through my setup Process.
 
-Actually I don't need the first proxy location on /_next/static as /portfolio route automatically manges and sends request if the next.config.ts is correctly configured for proxy. So we can remove it.
+Actually I don't need the first proxy location on /_next/static as /portfolio route automatically manages and sends request if the next.config.ts is correctly configured for reverse proxy. So we can remove it.
 
 ```
 location /portfolio/ {
