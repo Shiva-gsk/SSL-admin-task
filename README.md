@@ -112,13 +112,13 @@ PasswordAuthentication no
 
 When i researched about this I came to know that there are actually different ways, but yeah using firewall is a better one of all.
 
-IP are like two types Public and Private. We can eiter allow a public IP are a range of local IP using subnet.
+IP are like two types Public and Private. We can either allow a public IP are a range of local IP using subnet.
 
-Public IPs are basically globally unique and the router we get connected to access internet has its own public IP and our device will be assigned a Private IP using DHCP (Dynaic Host Control Protocol). 
+Public IPs are basically globally unique and the router we get connected to access internet has its own public IP and our device will be assigned a Private IP using DHCP (Dynamic Host Control Protocol). 
 
-All our requests inside our Local Area Network are baiscally done using Private IP and the connections outside our Router are handled by Public IP of router by sing something known as NAT (Network Address Translation).
+All our requests inside our Local Area Network are basically done using Private IP and the connections outside our Router are handled by Public IP of router by sing something known as NAT (Network Address Translation).
 
-So here as we are outside the Local Network of our cloud VM our SSH request is processed through Public IP whic we can find using ``curl `` 
+So here as we are outside the Local Network of our cloud VM our SSH request is processed through Public IP which we can find using ``curl -4 ifconfig.me `` 
 
 We can allow requests from that Public IP so only people in the Local Network of that router can access SSH. We can use this to allow all connection through this public IP
 ```
@@ -130,9 +130,9 @@ sudo ufw reload              // To apply changes
 To allow range of IP we can just use subnet mask something like 203.0.113.0/24 which basically allows all IPs in range of 203.0.113.1 - 203.0.113.255. (/24 says that 24 bits are like subnet mask and yhh remaining bits can be anything.)
 
 
-But Yhh Public IP changes sometimes, if the router goes down or due to some other issue.
+But Yhh Public IP changes sometimes, if the router goes down or due to DHCP or anyother thing..
 
-So, just tried it out once and removed the rule, as i might get locked out if something goes off.
+So, just tried it out once and removed the rule, as I might get locked out if something goes off.
 
 ### Fail2ban
 
@@ -264,7 +264,7 @@ sudo chmod 750 /home/exam_3
 ```
 I used ``sudo passwd username`` to set passwords to all users. For convenience i used password same as username.
 
-Finally, Though our examadmin has root priviliges cd to other user dirs is not possible though we can read and write files for outside directory. But can access those using root shell ``sudo -i``.
+Finally, Though our examadmin has root priviliges `cd` to other user dirs is not possible though we can read and write files for outside directory. But can access those using root shell ``sudo -i``.
 
 If we want examadmin to cd into all user directories without root shell, we can add all user groups to examadmin
 
@@ -344,7 +344,7 @@ We can passwd to the user , I used username as passwd for convinence.
 
 We can switch to newly created user using the command ``su - appuser``
 
-Now Initially I thought that I might get app from app and SHA256 signature using wget but it didn't worked well. So I used FileZilla to transfer the download app on windows to my VM. 
+Now Initially I thought that I might get app and SHA256 signature using wget but it didn't worked well. So I used FileZilla to transfer the downloaded app on windows to my VM. 
 
 To check signature we need to edit signature. So I switched to sudo user and edited the signature to include name of app at last like
 
@@ -678,7 +678,6 @@ PersistentKeepalive = 25
 
 Now, we Need to add client public key to server conf so that it verifies and accepts requests from client.
 
-
 ## Docker Fundamentals and Personal Website Deployment 
 
 ### 1. Basic Docker Setup
@@ -724,9 +723,9 @@ docker run hello-world
 
 ### 2. Deploying a Portfolio Website via Docker and Nginx
 
-For this I used FileZilla again to transfer my portfolio to VM and then created Dockerfile and .dockerignore files. The portfoilio is basically In NextJs.
+For this I used FileZilla again to transfer my portfolio to VM and then created Dockerfile and .dockerignore files. The portfolio is basically written In NextJs.
 
-Now we can create image 
+Now we can create a docker image 
 ```
 docker build -t portfolio .
 ```
@@ -739,6 +738,8 @@ and run the container with
 ```
 docker run -d --name my-porfolio   -p 5555:3000   -v nextjs_data:/app/data   --cap-add=NET_ADMIN    portfolio
 ```
+Here the flags `-d` means run in detached mode (not bound to  shell) , `-p` help to connect port 5555 of docker to 3000 on pc `-v` to mount volume.
+
 Due to issues with NextJs and Reverse Proxy Javascript is not being loading (Hydration) and my website is not Interactive. I might lokk into this later.
 
 And now to run this on bootup we need to create a service. We can just create a file with portfolio.serve name.
