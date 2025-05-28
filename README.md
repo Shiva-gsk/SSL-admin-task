@@ -665,7 +665,7 @@ We are setting our Vnet on IP 10.0.0.1 with subnet of 24 bits. And adding our Pr
 
 Now Similary, We need to Create a Client Interface and add Server Public Key to Client and Client Public key to Sever For them to exchange Packets.
 
-As Im using Windows as my client() I'm using Wireguard Application for Windows. And Create a Tunnel Interface.
+As Im using Windows as my client(😅) I'm using Wireguard Application for Windows. And Create a Tunnel Interface.
 
 ```
 [Interface]
