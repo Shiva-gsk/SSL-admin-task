@@ -395,7 +395,7 @@ Now for setting up a Reverse Proxy, since we are not assigned domains, I'm going
 
 Comming to **Reverse Proxy**, it is basically configured infront of backend to to do tasks like load balancing, directing requests to specific server, etc.
 
-It also helps us to hide the original IP of the backend serving as  security measure.
+It also helps us to hide the original IP of the backend serving as security measure.
 
 Also one advantage of reverse proxy is we don't need to remember port numbers of backend to interact with. We just send http or https request to ngnix and ngnix will handle.
 
@@ -453,7 +453,7 @@ First one is on endpoint /server1, we are forwrding the request to localhost (wh
 
 Similarly we done for /server2.
 
-Now for /sslopen after reading README I can we know that we can add env variable token assigned to some admin and send it as Dynamic parameter to access Post form.
+Now for /sslopen after reading README I came to know that we can add env variable token assigned to some admin and send it as Dynamic parameter to access Post form.
 
 So I just added to example Variables in .env.example to .env and included token in request URL.
 
