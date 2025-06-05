@@ -112,11 +112,11 @@ PasswordAuthentication no
 
 When i researched about this I came to know that there are actually different ways, but yeah using firewall is a better one of all.
 
-IP are like two types Public and Private. We can either allow a public IP are a range of local IP using subnet.
+IP are like two types Public and Private. We can either allow a public IP or a range of local IP using subnet.
 
-Public IPs are basically globally unique and the router we get connected to access internet has its own public IP and our device will be assigned a Private IP using DHCP (Dynamic Host Control Protocol). 
+Public IPs are basically globally unique and the router we get connected to access internet has its own public IP and our device will be assigned a Private IP using DHCP (Dynamic Host Control Protocol) by the Router. 
 
-All our requests inside our Local Area Network are basically done using Private IP and the connections outside our Router are handled by Public IP of router by sing something known as NAT (Network Address Translation).
+All our requests inside our Local Area Network are basically done using Private IP and the connections outside our Router are handled by Public IP of router by using something known as NAT (Network Address Translation).
 
 So here as we are outside the Local Network of our cloud VM our SSH request is processed through Public IP which we can find using ``curl -4 ifconfig.me `` 
 
@@ -130,7 +130,7 @@ sudo ufw reload              // To apply changes
 To allow range of IP we can just use subnet mask something like 203.0.113.0/24 which basically allows all IPs in range of 203.0.113.1 - 203.0.113.255. (/24 says that 24 bits are like subnet mask and yhh remaining bits can be anything.)
 
 
-But Yhh Public IP changes sometimes, if the router goes down or due to DHCP or anyother thing..
+But Yhh Public IP changes sometimes, if the router goes down or due to DHCP by ISP or anyother thing..
 
 So, just tried it out once and removed the rule, as I might get locked out if something goes off.
 
@@ -274,7 +274,7 @@ sudo usermod -aG exam_1,exam_2,exam_3 examadmin
 ### *Date: May 17th, 2025*
 ### Home Directory Setup
 
-To check permissions, we can use ls -lart /home and check all the permissions, because we already setup these in above steps.
+To check permissions, we can use `ls -lart /home` and check all the permissions, because we already setup these in above steps.
 
 Next to setup Disk Spaces to users 
 
@@ -351,7 +351,7 @@ To check signature we need to edit signature. So I switched to sudo user and edi
 ```
 52ef28f5606aa8ad4aee09e723ee9b08f62fdca0aa86c1c01c1bb4d61a46e47c app1
 ```
-We need to do so that checksum knows which file to check hash with.
+We need to do so that checksum knows which file to check the hash with.
 
 These kind of signatures are used to verify that the file is not tampered.
 
@@ -383,7 +383,7 @@ We can see its using bun by looking at bun.lockb
 
 So to run that either we can use Docker or bun
 
-For now i will go with bun for that we need to run 
+For now i will go with bun. For that we need to run 
 ```
 sudo apt install unzip -y
 curl -fsSL https://bun.sh/install | bash
@@ -395,7 +395,7 @@ Now for setting up a Reverse Proxy, since we are not assigned domains, I'm going
 
 Comming to **Reverse Proxy**, it is basically configured infront of backend to to do tasks like load balancing, directing requests to specific server, etc.
 
-It also helps us to hide the original IP of the backend serving as  security measure.
+It also helps us to hide the original IP of the backend serving as security measure in some cases.
 
 Also one advantage of reverse proxy is we don't need to remember port numbers of backend to interact with. We just send http or https request to ngnix and ngnix will handle.
 
@@ -447,7 +447,7 @@ sudo systemctl reload nginx
 
 Ok Now, Let's go through those lines step by step
 
-First we are defining that our nginx server to listen on port 80 i.e, http. We used our server name as public IP as we still not go any domain assigned. Then we specify our endpoints basically.
+First we are defining that our Nginx server to listen on port 80 i.e, http. We used our server name as public IP as we still not go any domain assigned. Then we specify our endpoints basically.
 
 First one is on endpoint /server1, we are forwrding the request to localhost (which is 127.0.0.1) on port 8008, where our app1 is running.
 
@@ -538,6 +538,8 @@ sudo systemctl reload nginx
 ```
 
 Now our Websites also have CSP enabled!!
+
+**UPDATE** : Though Domain is assigned to my VM, I'm just leaving my Reverse Proxy on my VM IP, as the domain will simply resolved to my VM IP and Ngnix takes the request on VM IP.
 
 
 ## Database Security
@@ -716,14 +718,14 @@ sudo usermod -aG docker $USER
 ```
 Now we can logout and login or just use ``newgrp docker`` to get permission to run docker containers.
 
-Lets try runnign `hello-world` image
+Lets try runnig `hello-world` image
 ```
 docker run hello-world
 ```
 
 ### 2. Deploying a Portfolio Website via Docker and Nginx
 
-For this I used FileZilla again to transfer my portfolio to VM and then created Dockerfile and .dockerignore files. The portfolio is basically written In NextJs.
+For this I used FileZilla again to transfer my portfolio to VM and then created Dockerfile and .dockerignore files. The Portfolio is basically written In NextJS.
 
 Now we can create a docker image 
 ```
@@ -738,7 +740,7 @@ and run the container with
 ```
 docker run -d --name my-porfolio   -p 5555:3000   -v nextjs_data:/app/data   --cap-add=NET_ADMIN    portfolio
 ```
-Here the flags `-d` means run in detached mode (not bound to  shell) , `-p` help to connect port 5555 of docker to 3000 on pc `-v` to mount volume.
+Here the flags `-d` means run in detached mode (not bound to shell/terminal) , `-p` help to connect port 5555 of docker to 3000 on pc `-v` to mount volume.
 
 Due to issues with NextJs and Reverse Proxy Javascript is not being loading (Hydration) and my website is not Interactive. I might lokk into this later.
 
@@ -876,3 +878,4 @@ Finally, Our reverse proxy is functional . YAY!!
 
 You can access my porfolio now on http://9.234.160.46/portfolio
 
+**UPDATE** : Though Domain is assigned to my VM, I'm just leaving my Reverse Proxy on my VM IP, as the domain will simply resolved to my VM IP and Ngnix takes the request on VM IP.
