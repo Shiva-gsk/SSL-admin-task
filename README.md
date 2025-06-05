@@ -453,7 +453,7 @@ First one is on endpoint /server1, we are forwrding the request to localhost (wh
 
 Similarly we done for /server2.
 
-Now for /sslopen after reading README I can we know that we can add env variable token assigned to some admin and send it as Dynamic parameter to access Post form.
+Now for /sslopen after reading README I came to know that we can add env variable token assigned to some admin and send it as Dynamic parameter to access Post form.
 
 So I just added to example Variables in .env.example to .env and included token in request URL.
 
